@@ -57,23 +57,31 @@ export default function SmallMascot() {
       audioSrc = "/assets/audio/detektif-data.mp3";
       break;
     default:
-      return null;
+      break;
   }
 
   // Autoplay audio when mascot appears on mobile
-  // eslint-disable-next-line react-hooks/rules-of-hooks
   useEffect(() => {
+    let audio: HTMLAudioElement | null = null;
+    
     if (audioSrc && window.innerWidth < 1024) {
-      if (audioRef.current) audioRef.current.pause();
-      audioRef.current = new Audio(audioSrc);
-      audioRef.current.play().catch(() => {});
+      audio = new Audio(audioSrc);
+      audioRef.current = audio;
+      audio.play().catch(() => {});
     }
+    
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+      if (audioRef.current === audio) {
+        audioRef.current = null;
       }
     };
   }, [audioSrc]);
+
+  if (!text) return null;
 
   return (
     <>

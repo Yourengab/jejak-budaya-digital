@@ -157,6 +157,17 @@ export default function DetektifDataPage() {
     const handleCheckAnswer = () => {
         if (!selectedOption) return;
         setIsAnswerChecked(true);
+        
+        const q = questions[currentQIndex];
+        const isCorrect = q.correctAnswers.includes(selectedOption);
+        
+        try {
+            const audio = new Audio(isCorrect ? "/assets/audio/correct.mp3" : "/assets/audio/wrong.mp3");
+            audio.volume = 0.5;
+            audio.play().catch(e => console.log("Sound effect play failed:", e));
+        } catch (e) {
+            console.error("Failed to play sound effect", e);
+        }
     };
 
     const handleNext = () => {

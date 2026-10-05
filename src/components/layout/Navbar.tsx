@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Tent, RotateCcw, ArrowLeft } from "lucide-react";
-import { motion } from "motion/react";
+import { Tent, RotateCcw, ArrowLeft, Volume2, VolumeX, Play, Pause, Music } from "lucide-react";
+import { motion, AnimatePresence } from "motion/react";
 
 const navLinks = [
   { name: "Beranda", href: "/home" },
@@ -16,10 +16,62 @@ const navLinks = [
   { name: "Overview", href: "/overview" },
 ];
 
+const tracks = ["/assets/audio/lagu-1.mp3", "/assets/audio/lagu-2.mp3"];
+
 export default function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
   const [showModal, setShowModal] = useState(false);
+  
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
+  const [volume, setVolume] = useState(0.1);
+  const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
+  const [showAudioControls, setShowAudioControls] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = isMuted ? 0 : volume;
+    }
+  }, [volume, isMuted]);
+
+  useEffect(() => {
+    const playAudio = async () => {
+      if (audioRef.current && isPlaying) {
+        try {
+          await audioRef.current.play();
+        } catch {
+          console.log("Audio play failed (autoplay policy). Waiting for interaction.");
+        }
+      } else if (audioRef.current && !isPlaying) {
+        audioRef.current.pause();
+      }
+    };
+    
+    playAudio();
+  }, [isPlaying, currentTrackIndex]);
+
+  // Global listener to unlock audio upon first user interaction
+  useEffect(() => {
+    const unlockAudio = () => {
+      if (audioRef.current && isPlaying && audioRef.current.paused) {
+        audioRef.current.play().catch(() => {});
+      }
+    };
+    
+    document.addEventListener("click", unlockAudio, { once: true });
+    document.addEventListener("touchstart", unlockAudio, { once: true });
+    
+    return () => {
+      document.removeEventListener("click", unlockAudio);
+      document.removeEventListener("touchstart", unlockAudio);
+    };
+  }, [isPlaying]);
+
+  const handleEnded = () => {
+    setCurrentTrackIndex((prev) => (prev + 1) % tracks.length);
+  };
 
   const handleRestart = () => {
     localStorage.clear();
@@ -88,15 +140,72 @@ export default function Navbar() {
           })}
         </nav>
 
-        {/* Action Button */}
-        <button
-          className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 rounded-full bg-batak-maroon/10 text-batak-maroon font-semibold hover:bg-batak-maroon/20 transition-colors text-sm shrink-0"
-          title="Mulai Ulang"
-          onClick={() => setShowModal(true)}
-        >
-          <RotateCcw size={18} className="sm:w-4 sm:h-4 stroke-[2.5]" />
-          <span className="hidden sm:inline">Mulai Ulang</span>
-        </button>
+        {/* Action Buttons Container */}
+        <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+          
+          {/* Audio Controls */}
+          <div className="hidden sm:flex items-center relative">
+            <button
+              onClick={() => setShowAudioControls(!showAudioControls)}
+              className="p-2 sm:p-2.5 rounded-full bg-batak-cream/30 border border-batak-brown/10 hover:bg-batak-brown/10 text-batak-brown transition-colors z-10"
+              title="Pengaturan Musik Latar"
+            >
+              <Music size={18} className="stroke-[2.5]" />
+            </button>
+            
+            <AnimatePresence>
+              {showAudioControls && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  className="absolute top-full right-0 mt-2 bg-white/95 backdrop-blur-sm p-3 rounded-2xl shadow-xl border border-batak-cream flex flex-col gap-3 min-w-35"
+                >
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => setIsPlaying(!isPlaying)}
+                      className="p-1.5 rounded-full hover:bg-batak-brown/10 text-batak-brown transition-colors"
+                      title={isPlaying ? "Jeda Musik" : "Putar Musik"}
+                    >
+                      {isPlaying ? <Pause size={18} /> : <Play size={18} />}
+                    </button>
+                    
+                    <button
+                      onClick={() => setIsMuted(!isMuted)}
+                      className="p-1.5 rounded-full hover:bg-batak-brown/10 text-batak-brown transition-colors"
+                      title={isMuted ? "Bunyikan" : "Bisukan"}
+                    >
+                      {isMuted || volume === 0 ? <VolumeX size={18} /> : <Volume2 size={18} />}
+                    </button>
+                  </div>
+                  
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={isMuted ? 0 : volume}
+                    onChange={(e) => {
+                      setVolume(parseFloat(e.target.value));
+                      if (parseFloat(e.target.value) > 0) setIsMuted(false);
+                    }}
+                    className="w-full h-1.5 bg-batak-brown/20 rounded-lg appearance-none cursor-pointer accent-batak-maroon"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Action Button */}
+          <button
+            className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 rounded-full bg-batak-maroon/10 text-batak-maroon font-semibold hover:bg-batak-maroon/20 transition-colors text-sm"
+            title="Mulai Ulang"
+            onClick={() => setShowModal(true)}
+          >
+            <RotateCcw size={18} className="sm:w-4 sm:h-4 stroke-[2.5]" />
+            <span className="hidden sm:inline">Mulai Ulang</span>
+          </button>
+        </div>
       </div>
     </header>
 
@@ -139,6 +248,14 @@ export default function Navbar() {
           </motion.div>
         </div>
       )}
+
+      {/* Hidden Audio Element */}
+      <audio
+        ref={audioRef}
+        src={tracks[currentTrackIndex]}
+        onEnded={handleEnded}
+        autoPlay
+      />
     </>
   );
 }

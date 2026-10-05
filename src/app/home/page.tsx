@@ -77,14 +77,34 @@ export default function Home() {
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
-        audioRef.current = new Audio("/assets/audio/beranda.mp3");
-        audioRef.current.play().catch(() => {});
+        const audio = new Audio("/assets/audio/beranda.mp3");
+        audioRef.current = audio;
+        
+        const tryPlay = () => {
+            audio.play().catch(() => {
+                console.log("Home audio autoplay blocked, waiting for interaction");
+            });
+        };
+        
+        tryPlay();
+
+        const unlockAudio = () => {
+            if (audio.paused) {
+                audio.play().catch(() => {});
+            }
+        };
+
+        document.addEventListener("click", unlockAudio, { once: true });
+        document.addEventListener("touchstart", unlockAudio, { once: true });
 
         return () => {
-            if (audioRef.current) {
-                audioRef.current.pause();
+            audio.pause();
+            audio.currentTime = 0;
+            if (audioRef.current === audio) {
                 audioRef.current = null;
             }
+            document.removeEventListener("click", unlockAudio);
+            document.removeEventListener("touchstart", unlockAudio);
         };
     }, []);
 
