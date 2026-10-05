@@ -20,6 +20,7 @@ type FoodCount = {
 
 type Question = {
     id: number;
+    level: string;
     text: string;
     options: string[];
     correctAnswers: string[];
@@ -52,75 +53,112 @@ export default function DetektifDataPage() {
     }, []);
 
     const generateQuestions = (surveyData: FoodCount[]): Question[] => {
-        const maxCount = Math.max(...surveyData.map((d) => d.count));
-        const topFoods = surveyData
-            .filter((d) => d.count === maxCount)
-            .map((d) => d.name);
+        // Helper: find food by id
+        const getFood = (id: string) => surveyData.find((d) => d.id === id) ?? { id, name: id, count: 0 };
 
-        const allNames = surveyData.map((d) => d.name);
+        const lapet  = getFood("lapet");
+        const lemang = getFood("lemang");
+        const ombus  = getFood("ombus");
+        const bika   = getFood("bika");
 
-        // Q1
+        const allFoods = [lapet, lemang, ombus, bika];
+        const allNames = allFoods.map((d) => d.name);
+
+        // --- Misi 1: Makanan terbanyak ---
+        const maxCount = Math.max(...allFoods.map((d) => d.count));
+        const topFoods = allFoods.filter((d) => d.count === maxCount).map((d) => d.name);
+        const isAllEqual = topFoods.length === allFoods.length;
         const q1Options = [...allNames].sort(() => Math.random() - 0.5);
 
-        // Q2
-        const extraPortions = Math.floor(Math.random() * 5) + 3; // 3 to 7
-        const q2Options = [...allNames].sort(() => Math.random() - 0.5);
+        // --- Misi 2: Total seluruh siswa ---
+        const totalStudents = allFoods.reduce((sum, d) => sum + d.count, 0);
+        const q2WrongOptions = [totalStudents - 1, totalStudents + 1, totalStudents + 2].filter((n) => n > 0);
+        const q2OptionSet = Array.from(new Set([totalStudents, ...q2WrongOptions])).slice(0, 4).map((n) => `${n} siswa`).sort(() => Math.random() - 0.5);
 
-        // Q3
-        const randomFood =
-            surveyData[Math.floor(Math.random() * surveyData.length)];
-        const extraBuyers = Math.floor(Math.random() * 4) + 2; // 2 to 5
-        const newTotal = randomFood.count + extraBuyers;
-        const numSet = new Set([
-            newTotal,
-            Math.max(0, newTotal - 1),
-            newTotal + 1,
-            newTotal + 2,
-        ]);
-        const q3Options = Array.from(numSet)
-            .map(String)
-            .sort(() => Math.random() - 0.5);
+        // --- Misi 3: Selisih Bika Ambon dan Ombus-ombus ---
+        const selisih = Math.abs(bika.count - ombus.count);
+        const q3WrongOptions = [selisih === 0 ? 1 : selisih - 1, selisih + 1, selisih + 2].filter((n) => n >= 0 && n !== selisih);
+        const q3OptionSet = Array.from(new Set([selisih, ...q3WrongOptions])).slice(0, 4).map((n) => `${n} siswa`).sort(() => Math.random() - 0.5);
 
-        const isAllEqual = topFoods.length === surveyData.length;
+        // --- Misi 4: Makanan paling sedikit ---
+        const minCount = Math.min(...allFoods.map((d) => d.count));
+        const bottomFoods = allFoods.filter((d) => d.count === minCount).map((d) => d.name);
+        const q4Options = [...allNames].sort(() => Math.random() - 0.5);
+
+        // --- Misi 5 (HOTS): 3 siswa bika pindah ke lemang ---
+        const newBikaCount = Math.max(0, bika.count - 3);
+        const newLemangCount = lemang.count + 3;
+        const updatedFoods = allFoods.map((d) => {
+            if (d.id === "bika")   return { ...d, count: newBikaCount };
+            if (d.id === "lemang") return { ...d, count: newLemangCount };
+            return d;
+        });
+        const newMax = Math.max(...updatedFoods.map((d) => d.count));
+        const newTopFoods = updatedFoods.filter((d) => d.count === newMax).map((d) => d.name);
+        const q5Options = [...allNames].sort(() => Math.random() - 0.5);
 
         return [
+            // ── Misi 1 ──────────────────────────────────────────────
             {
                 id: 1,
+                level: "⭐ Sederhana",
                 text: isAllEqual
-                    ? "Wah, ternyata semua makanan di datamu disukai oleh jumlah orang yang sama! Coba pilih salah satu dari makanan tersebut."
+                    ? "Wah, ternyata semua makanan di datamu dipilih oleh jumlah orang yang sama! Coba pilih salah satu dari makanan tersebut."
                     : topFoods.length > 1
-                      ? "Ada beberapa makanan yang seri nih jumlah pemilihnya paling tinggi! Pilih salah satu makanan favorit itu."
+                      ? "Ada beberapa makanan yang seri jumlah pemilihnya! Pilih salah satu makanan favorit itu."
                       : "Dari data yang kamu kumpulkan, makanan tradisional apa yang paling banyak dipilih teman-temanmu?",
                 options: q1Options,
                 correctAnswers: topFoods,
-                feedbackText: (ans) =>
+                feedbackText: (ans: string) =>
                     isAllEqual
-                        ? `Benar! Karena semua datanya sama, ${ans} sama-sama dipilih oleh ${maxCount} orang.`
+                        ? `Benar! Semua datanya sama, ${ans} sama-sama dipilih ${maxCount} orang.`
                         : topFoods.length > 1
-                          ? `Benar! ${ans} adalah salah satu yang terfavorit dan sama-sama dipilih oleh ${maxCount} orang.`
-                          : `Benar sekali! ${ans} adalah makanan terfavorit karena dipilih oleh ${maxCount} orang.`,
+                          ? `Benar! ${ans} adalah salah satu yang terfavorit, sama-sama dipilih ${maxCount} orang.`
+                          : `Benar sekali! ${ans} adalah makanan terfavorit karena dipilih ${maxCount} orang.`,
             },
+            // ── Misi 2 ──────────────────────────────────────────────
             {
                 id: 2,
-                text: isAllEqual
-                    ? `Seorang pedagang ingin memasak ${extraPortions} porsi tambahan. Karena datamu semuanya seri, makanan mana saja yang bisa ia tambah? Pilih salah satu!`
-                    : topFoods.length > 1
-                      ? `Seorang pedagang ingin memasak ${extraPortions} porsi tambahan. Pilih salah satu dari makanan terfavorit (yang jumlahnya tertinggi seri) untuk ditambah.`
-                      : `Seorang pedagang ingin memasak ${extraPortions} porsi tambahan. Berdasarkan datamu, makanan mana yang sebaiknya ia tambah agar cepat habis terjual?`,
-                options: q2Options,
-                correctAnswers: topFoods,
-                feedbackText: (ans) =>
-                    isAllEqual
-                        ? `Tepat! Karena semua disukai merata, menambah ${ans} juga pilihan yang bagus.`
-                        : `Tepat! Karena ${ans} paling banyak disukai, pasti akan cepat habis kalau ditambah porsinya.`,
+                level: "⭐ Sederhana",
+                text: "Berapa jumlah seluruh siswa yang ikut memilih makanan tradisional tersebut?",
+                options: q2OptionSet,
+                correctAnswers: [`${totalStudents} siswa`],
+                feedbackText: () =>
+                    `Tepat! ${allFoods.map((d) => `${d.name} (${d.count})`).join(" + ")} = ${totalStudents} siswa.`,
             },
+            // ── Misi 3 ──────────────────────────────────────────────
             {
                 id: 3,
-                text: `Wah, tiba-tiba ada ${extraBuyers} orang lagi yang datang khusus untuk memilih ${randomFood.name}. Kalau ditambah dengan data surveimu, berapa total orang yang memilih ${randomFood.name} sekarang?`,
-                options: q3Options,
-                correctAnswers: [newTotal.toString()],
+                level: "⭐⭐ Menengah",
+                text: `Berdasarkan data, berapa selisih jumlah siswa yang memilih ${bika.name} dan ${ombus.name}?`,
+                options: q3OptionSet,
+                correctAnswers: [`${selisih} siswa`],
                 feedbackText: () =>
-                    `Pintar! Awalnya ada ${randomFood.count} orang, lalu ditambah ${extraBuyers} orang, totalnya jadi ${newTotal}!`,
+                    selisih === 0
+                        ? `Benar! ${bika.name} dan ${ombus.name} keduanya dipilih ${bika.count} orang, jadi selisihnya 0.`
+                        : `Pintar! |${bika.count} - ${ombus.count}| = ${selisih} siswa.`,
+            },
+            // ── Misi 4 ──────────────────────────────────────────────
+            {
+                id: 4,
+                level: "⭐⭐ Menengah",
+                text: "Seorang pedagang ingin menambah 3 porsi makanan. Ia memilih makanan yang saat ini paling sedikit dipilih agar jumlahnya lebih mendekati makanan lainnya. Makanan mana yang sebaiknya ditambah?",
+                options: q4Options,
+                correctAnswers: bottomFoods,
+                feedbackText: (ans: string) =>
+                    bottomFoods.length > 1
+                        ? `Benar! ${ans} adalah salah satu yang paling sedikit dipilih (${minCount} orang), jadi layak ditambah.`
+                        : `Benar! ${ans} paling sedikit dipilih yaitu hanya ${minCount} orang, jadi perlu ditambah agar lebih seimbang.`,
+            },
+            // ── Misi 5 HOTS ─────────────────────────────────────────
+            {
+                id: 5,
+                level: "🔥 HOTS",
+                text: `Wahh, ternyata tiba-tiba 3 siswa yang sebelumnya memilih ${bika.name} mengubah pilihannya menjadi ${lemang.name}. Setelah perubahan tersebut, makanan mana yang menjadi pilihan terbanyak?`,
+                options: q5Options,
+                correctAnswers: newTopFoods,
+                feedbackText: (ans: string) =>
+                    `Luar biasa! Setelah 3 siswa pindah, ${bika.name} jadi ${newBikaCount} dan ${lemang.name} jadi ${newLemangCount}. ${ans} adalah pilihan terbanyak dengan ${newMax} orang!`,
             },
         ];
     };
@@ -301,10 +339,21 @@ export default function DetektifDataPage() {
                                 <Search size={24} strokeWidth={2.5} />
                             </div>
                             <div>
-                                <h3 className="text-[#3b4c68] font-bold text-sm mb-1 uppercase tracking-wider">
-                                    Misi {currentQIndex + 1} dari{" "}
-                                    {questions.length}
-                                </h3>
+                                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                    <h3 className="text-[#3b4c68] font-bold text-sm uppercase tracking-wider">
+                                        Misi {currentQIndex + 1} dari{" "}
+                                        {questions.length}
+                                    </h3>
+                                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+                                        currentQ.level.includes("HOTS")
+                                            ? "bg-red-50 text-red-600 border-red-200"
+                                            : currentQ.level.includes("Menengah")
+                                              ? "bg-amber-50 text-amber-600 border-amber-200"
+                                              : "bg-emerald-50 text-emerald-600 border-emerald-200"
+                                    }`}>
+                                        {currentQ.level}
+                                    </span>
+                                </div>
                                 <h2 className="text-xl sm:text-2xl font-black text-[#0f213a] leading-snug">
                                     {currentQ.text}
                                 </h2>
@@ -435,7 +484,7 @@ export default function DetektifDataPage() {
                                                     className={`text-sm font-medium leading-relaxed ${isCorrect ? "text-emerald-700" : "text-red-700"}`}
                                                 >
                                                     {!isCorrect && (
-                                                        <span className="block mb-2 font-bold text-red-900">
+                                                        <span className="block font-bold text-red-900">
                                                             Jawaban yang benar
                                                             adalah:{" "}
                                                             {currentQ.correctAnswers.join(
@@ -443,11 +492,12 @@ export default function DetektifDataPage() {
                                                             )}
                                                         </span>
                                                     )}
-                                                    {currentQ.feedbackText(
-                                                        selectedOption ||
-                                                            currentQ
-                                                                .correctAnswers[0],
-                                                    )}
+                                                    {isCorrect &&
+                                                        currentQ.feedbackText(
+                                                            selectedOption ||
+                                                                currentQ
+                                                                    .correctAnswers[0],
+                                                        )}
                                                 </p>
                                             </div>
                                         </div>
