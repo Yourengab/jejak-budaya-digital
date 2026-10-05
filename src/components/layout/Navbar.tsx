@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Tent, RotateCcw } from "lucide-react";
+import { Tent, RotateCcw, ArrowLeft } from "lucide-react";
 import { motion } from "motion/react";
 
 const navLinks = [
@@ -13,6 +13,7 @@ const navLinks = [
   { name: "Input Data", href: "/input-data" },
   { name: "Analisis", href: "/analisis" },
   { name: "Detektif Data & Misi", href: "/detektif-data" },
+  { name: "Overview", href: "/overview" },
 ];
 
 export default function Navbar() {
@@ -31,15 +32,35 @@ export default function Navbar() {
     <>
       <header className="w-full h-14 sm:h-16 bg-batak-cream/90 backdrop-blur-sm sticky top-0 z-50 border-b border-batak-brown/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-full flex items-center justify-between">
-          {/* Logo */}
-        <Link href="/home" className="flex items-center gap-3 group">
-          <div className="text-batak-brown p-1.5 sm:p-2 rounded-lg group-hover:bg-batak-gold/30 transition-colors">
-            <Tent size={24} className="stroke-[2.5]" />
-          </div>
+        <div className="flex items-center">
+          {pathname !== "/home" && pathname !== "/" && (
+            <button 
+              onClick={() => {
+                const backRoutes: Record<string, string> = {
+                  "/kenali-budaya": "/home",
+                  "/survei": "/kenali-budaya",
+                  "/input-data": "/survei",
+                  "/analisis": "/input-data",
+                  "/detektif-data": "/analisis",
+                  "/overview": "/detektif-data",
+                };
+                router.push(backRoutes[pathname] || "/home");
+              }} 
+              className="mr-2 sm:mr-4 flex items-center justify-center p-1.5 sm:p-2 rounded-full hover:bg-batak-brown/10 transition-colors text-batak-brown"
+              title="Kembali"
+            >
+              <ArrowLeft size={20} className="stroke-[2.5]" />
+            </button>
+          )}
+          <Link href="/home" className="flex items-center gap-3 group">
+            <div className="text-batak-brown p-1.5 sm:p-2 rounded-lg group-hover:bg-batak-gold/30 transition-colors">
+              <Tent size={24} className="stroke-[2.5]" />
+            </div>
           <div className="font-bold text-base sm:text-lg leading-tight text-batak-brown flex flex-col">
             <span>Jejak Data Budaya</span>
           </div>
         </Link>
+        </div>
 
         {/* Navigation Links */}
         <nav className="hidden lg:flex items-center gap-1">
@@ -69,11 +90,12 @@ export default function Navbar() {
 
         {/* Action Button */}
         <button
-          className="flex items-center gap-2 px-4 py-2 rounded-full bg-batak-maroon/10 text-batak-maroon font-semibold hover:bg-batak-maroon/20 transition-colors text-sm"
+          className="flex items-center gap-2 p-2 sm:px-4 sm:py-2 rounded-full bg-batak-maroon/10 text-batak-maroon font-semibold hover:bg-batak-maroon/20 transition-colors text-sm shrink-0"
+          title="Mulai Ulang"
           onClick={() => setShowModal(true)}
         >
-          <RotateCcw size={16} className="stroke-[2.5]" />
-          <span>Mulai Ulang</span>
+          <RotateCcw size={18} className="sm:w-4 sm:h-4 stroke-[2.5]" />
+          <span className="hidden sm:inline">Mulai Ulang</span>
         </button>
       </div>
     </header>

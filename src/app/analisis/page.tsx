@@ -51,7 +51,7 @@ export default function AnalisisPage() {
           setData(parsed);
           setIsLoaded(true);
         }, 0);
-      } catch (e) {
+      } catch {
         console.error("Failed to parse data");
         setTimeout(() => setShowEmptyDataModal(true), 0);
       }
@@ -81,7 +81,7 @@ export default function AnalisisPage() {
           transition={{ type: "spring", bounce: 0.4 }}
           className="relative z-10 bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border-2 border-batak-cream"
         >
-          <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 shrink-0 border-[4px] border-white drop-shadow-sm">
+          <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 shrink-0 border-4 border-white drop-shadow-sm">
             <Lightbulb size={40} strokeWidth={2.5} />
           </div>
           <h2 className="text-xl sm:text-2xl font-black text-[#0f213a] mb-3 leading-tight">
@@ -140,7 +140,7 @@ export default function AnalisisPage() {
 
             {/* Card 2: Top Food */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-batak-cream/50 flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#fef3c7] text-[#d97706] rounded-full flex items-center justify-center mb-4 sm:mb-6 shrink-0">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#fef3c7] text-batak-gold rounded-full flex items-center justify-center mb-4 sm:mb-6 shrink-0">
                 <Trophy size={32} strokeWidth={2.5} />
               </div>
               <h3 className="text-[#0f213a] font-bold text-sm sm:text-base mb-2">Makanan Paling Disukai</h3>
@@ -160,7 +160,7 @@ export default function AnalisisPage() {
                 <Lightbulb size={32} strokeWidth={2.5} />
               </div>
               <h3 className="text-[#0f213a] font-bold text-sm sm:text-base mb-2">Insight</h3>
-              <p className="text-[#3b4c68] font-medium text-xs sm:text-sm leading-relaxed mt-2 max-w-[200px]">
+              <p className="text-[#3b4c68] font-medium text-xs sm:text-sm leading-relaxed mt-2 max-w-50">
                 {totalRespondents === 0 
                   ? "Belum ada data yang dikumpulkan. Ayo tanyakan ke teman-temanmu!"
                   : `${topFoodName} menjadi makanan yang paling banyak dipilih berdasarkan data survei.`}
@@ -194,7 +194,7 @@ export default function AnalisisPage() {
                           initial={{ width: 0 }}
                           animate={{ width: `${percentage}%` }}
                           transition={{ duration: 1, type: "spring", bounce: 0.2 }}
-                          className="h-full bg-batak-maroon rounded-r-xl min-w-[4px]"
+                          className="h-full bg-batak-maroon rounded-r-xl min-w-1"
                         />
                       </div>
                       <div className="w-8 shrink-0 font-bold text-batak-brown text-sm">
@@ -246,7 +246,7 @@ export default function AnalisisPage() {
                 {pieSlices.map(slice => (
                   <div key={slice.id} className="flex items-center gap-3">
                     <div className="w-5 h-5 rounded-md shadow-sm" style={{ backgroundColor: slice.color }} />
-                    <div className="font-bold text-sm text-[#0f213a] min-w-[120px]">{slice.name}</div>
+                    <div className="font-bold text-sm text-[#0f213a] min-w-30">{slice.name}</div>
                     <div className="font-medium text-sm text-gray-500">
                       {slice.count} orang ({slice.pct.toFixed(1)}%)
                     </div>
@@ -271,7 +271,7 @@ export default function AnalisisPage() {
             
             <div className="flex flex-col gap-6">
               {data.map(food => (
-                <div key={food.id} className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 border-b border-gray-100 pb-6 last:border-0 last:pb-0">
+                <div key={food.id} className="flex flex-col sm:flex-row sm:items-start gap-2 sm:gap-4 border-b border-gray-100 pb-6 last:border-0">
                   <div className="w-full sm:w-32 shrink-0 font-bold text-sm text-[#0f213a] sm:mt-1">
                     {food.name}
                   </div>
@@ -385,9 +385,9 @@ export default function AnalisisPage() {
             transition={{ delay: 0.4 }}
             className="flex items-center justify-center gap-3 mt-6"
           >
-            <div className="w-16 h-[2px] bg-batak-maroon/30" />
+            <div className="w-16 h-0.5 bg-batak-maroon/30" />
             <div className="w-3 h-3 rotate-45 border-2 border-batak-maroon" />
-            <div className="w-16 h-[2px] bg-batak-maroon/30" />
+            <div className="w-16 h-0.5 bg-batak-maroon/30" />
           </motion.div>
         </div>
 

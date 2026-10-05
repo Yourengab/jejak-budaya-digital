@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "motion/react";
@@ -33,9 +33,23 @@ export default function DetektifDataPage() {
 
     const [selectedOption, setSelectedOption] = useState<string | null>(null);
     const [isAnswerChecked, setIsAnswerChecked] = useState(false);
+    const [answers, setAnswers] = useState<{ question: string; selected: string; correct: boolean }[]>([]);
 
     const [isLoaded, setIsLoaded] = useState(false);
     const [showEmptyDataModal, setShowEmptyDataModal] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        audioRef.current = new Audio("/assets/audio/detektif-data.mp3");
+        audioRef.current.play().catch(() => {});
+
+        return () => {
+            if (audioRef.current) {
+                audioRef.current.pause();
+                audioRef.current = null;
+            }
+        };
+    }, []);
 
     const generateQuestions = (surveyData: FoodCount[]): Question[] => {
         const maxCount = Math.max(...surveyData.map((d) => d.count));
@@ -105,7 +119,7 @@ export default function DetektifDataPage() {
                 text: `Wah, tiba-tiba ada ${extraBuyers} orang lagi yang datang khusus untuk memilih ${randomFood.name}. Kalau ditambah dengan data surveimu, berapa total orang yang memilih ${randomFood.name} sekarang?`,
                 options: q3Options,
                 correctAnswers: [newTotal.toString()],
-                feedbackText: (ans) =>
+                feedbackText: () =>
                     `Pintar! Awalnya ada ${randomFood.count} orang, lalu ditambah ${extraBuyers} orang, totalnya jadi ${newTotal}!`,
             },
         ];
@@ -127,7 +141,7 @@ export default function DetektifDataPage() {
                     setQuestions(generateQuestions(parsed));
                     setIsLoaded(true);
                 }, 0);
-            } catch (e) {
+            } catch {
                 setTimeout(() => setShowEmptyDataModal(true), 0);
             }
         } else {
@@ -146,13 +160,23 @@ export default function DetektifDataPage() {
     };
 
     const handleNext = () => {
+        const q = questions[currentQIndex];
+        const currentAnswer = {
+            question: q.text,
+            selected: selectedOption || "",
+            correct: q.correctAnswers.includes(selectedOption || ""),
+        };
+        const updatedAnswers = [...answers, currentAnswer];
+        setAnswers(updatedAnswers);
+
         if (currentQIndex < questions.length - 1) {
             setCurrentQIndex((prev) => prev + 1);
             setSelectedOption(null);
             setIsAnswerChecked(false);
         } else {
-            // Finished all questions, go to Misi (if implemented) or elsewhere
-            router.push("/misi");
+            // Save quiz results to localStorage and go to overview
+            localStorage.setItem("quizResults", JSON.stringify(updatedAnswers));
+            router.push("/overview");
         }
     };
 
@@ -173,7 +197,7 @@ export default function DetektifDataPage() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     className="relative z-10 bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full text-center shadow-2xl border-2 border-batak-cream"
                 >
-                    <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 border-[4px] border-white drop-shadow-sm">
+                    <div className="w-20 h-20 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 border-4 border-white drop-shadow-sm">
                         <Lightbulb size={40} strokeWidth={2.5} />
                     </div>
                     <h2 className="text-xl sm:text-2xl font-black text-[#0f213a] mb-3 leading-tight">
@@ -223,7 +247,7 @@ export default function DetektifDataPage() {
                             type: "spring",
                             bounce: 0.4,
                         }}
-                        className="relative w-full max-w-[400px] h-[500px]"
+                        className="relative w-full max-w-100 h-125"
                     >
                         <Image
                             src="/assets/detektif data/mascot-crop.png"
@@ -242,7 +266,7 @@ export default function DetektifDataPage() {
                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         transition={{ type: "spring", bounce: 0.4 }}
-                        className="bg-[#fdfbf7] rounded-[2rem] p-6 sm:p-10 shadow-2xl border-2 border-white/50 w-full relative overflow-hidden"
+                        className="bg-[#fdfbf7] rounded-4xl p-6 sm:p-10 shadow-2xl border-2 border-white/50 w-full relative overflow-hidden"
                     >
                         {/* Progress Indicator */}
                         <div className="flex items-center justify-center gap-2 mb-8">
@@ -340,7 +364,7 @@ export default function DetektifDataPage() {
                         </div>
 
                         {/* Action Area & Feedback */}
-                        <div className="pt-4 border-t-2 border-gray-100 min-h-[100px] flex flex-col justify-center">
+                        <div className="pt-4 border-t-2 border-gray-100 min-h-25 flex flex-col justify-center">
                             <AnimatePresence mode="wait">
                                 {!isAnswerChecked ? (
                                     <motion.div

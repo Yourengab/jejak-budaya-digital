@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { motion, AnimatePresence } from "motion/react";
@@ -41,6 +41,17 @@ const foodData = [
 export default function KenaliBudaya() {
   const [selectedFood, setSelectedFood] = useState<typeof foodData[0] | null>(null);
   const [showMascot] = useState(true);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (window.innerWidth >= 1024) {
+      audioRef.current = new Audio("/assets/audio/kenali-budaya.mp3");
+      audioRef.current.play().catch(() => {});
+    }
+    return () => {
+      if (audioRef.current) audioRef.current.pause();
+    };
+  }, []);
 
   return (
     <main className="flex-1 relative flex flex-col h-[calc(100dvh-3.5rem)] sm:h-[calc(100dvh-4rem)] overflow-hidden">
@@ -121,14 +132,14 @@ export default function KenaliBudaya() {
               className="bg-white rounded-4xl p-3 sm:p-4 border-3 border-batak-cream shadow-[4px_4px_0px_0px_rgba(0,0,0,0.06)] h-76 sm:h-80 flex flex-col group transition-all duration-300 cursor-pointer hover:-translate-y-1 hover:shadow-[4px_8px_0px_0px_rgba(0,0,0,0.06)]"
             >
               {/* Food Image */}
-              <div className="w-full h-28 lg:h-32 bg-[#faf8f5] rounded-3xl mb-3 flex items-center justify-center relative overflow-hidden border-2 border-batak-cream/60 shrink-0 group-hover:border-batak-maroon/30 transition-colors">
+              <div className="w-full h-28 lg:h-32 bg-white rounded-3xl mb-3 flex items-center justify-center relative overflow-hidden border-2 border-batak-cream/60 shrink-0 group-hover:border-batak-maroon/30 transition-colors">
                 <Image 
                   src={food.image}
                   alt={food.name}
                   fill
-                  className="object-cover object-center group-hover:scale-110 transition-transform duration-500"
+                  className="object-contain object-center p-2 group-hover:scale-110 transition-transform duration-500"
                 />
-                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-batak-brown to-transparent"></div>
+                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,var(--tw-gradient-stops))] from-batak-brown to-transparent pointer-events-none"></div>
               </div>
               
               <h3 className="font-black text-batak-brown text-lg mb-1 text-center">{food.name}</h3>
@@ -168,6 +179,14 @@ export default function KenaliBudaya() {
                 <div className="flex items-start justify-between gap-2 mb-1">
                   <p className="font-bold text-base leading-tight">Kenali Budaya Kita!</p>
                   <button 
+                    onClick={() => {
+                        if (audioRef.current) {
+                            audioRef.current.pause();
+                            audioRef.current.currentTime = 0;
+                        }
+                        audioRef.current = new Audio("/assets/audio/kenali-budaya.mp3");
+                        audioRef.current.play().catch(() => {});
+                    }}
                     className="text-batak-maroon hover:text-white hover:bg-batak-maroon bg-batak-cream/30 p-1.5 rounded-full transition-colors shrink-0"
                     aria-label="Putar Audio"
                   >
@@ -230,14 +249,14 @@ export default function KenaliBudaya() {
               className="relative bg-[#faf8f5] w-full max-w-2xl rounded-4xl overflow-hidden shadow-2xl flex flex-col md:flex-row"
             >
               {/* Image Section */}
-              <div className="w-full md:w-2/5 h-48 md:h-auto bg-[#faf8f5] flex items-center justify-center relative border-b-4 md:border-b-0 md:border-r-4 border-batak-cream/30">
+              <div className="w-full md:w-2/5 h-48 md:h-auto bg-white flex items-center justify-center relative border-b-4 md:border-b-0 md:border-r-4 border-batak-cream/30">
                  <Image 
                    src={selectedFood.image}
                    alt={selectedFood.name}
                    fill
-                   className="object-cover object-center"
+                   className="object-contain object-center p-6"
                  />
-                 <div className="absolute inset-0 bg-white/20 mix-blend-overlay"></div>
+                 <div className="absolute inset-0 bg-white/20 mix-blend-overlay pointer-events-none"></div>
               </div>
               
               {/* Content Section */}

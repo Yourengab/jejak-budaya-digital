@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Fredoka } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/layout/Navbar";
+import SmallMascot from "@/components/layout/SmallMascot";
 
 const fredoka = Fredoka({
   variable: "--font-fredoka",
@@ -23,6 +24,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col font-sans">
         <Navbar />
         {children}
+        <SmallMascot />
       </body>
     </html>
   );
